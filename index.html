@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MapLibre Choropleth with Table</title>
+
+    <!-- MapLibre GL CSS -->
+    <link
+    href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css"
+    rel="stylesheet"
+    />
+
+    <!-- Your custom stylesheet -->
+    <link rel="stylesheet" href="custom.css" />
+</head>
+
+<body>
+    <div class="app">
+        <div class="toolbar">
+            <label for="metric">Metric</label>
+            <select id="metric">
+                <option value="pupil_teacher" selected>Pupil per Teacher Ratio</option>
+                <option value="revenue">Total Revenue</option>
+                <option value="expenditure_pupil">Total Expenditure per Pupil</option>
+                <option value="grad_rate">Graduation Rate</option>
+            </select>
+
+            <label for="year">Year</label>
+            <select id="year">
+                <option value="2021-22">2021-22</option>
+                <option value="2020-21">2020-21</option>
+                <option value="2019-20">2019-20</option>
+                <option value="2018-19">2018-19</option>
+                <option value="2017-18">2017-18</option>
+                <option value="2016-17">2016-17</option>
+                <option value="2015-16">2015-16</option>
+                <option value="2014-15">2014-15</option>
+                <option value="2013-14">2013-14</option>
+                <option value="2012-13">2012-13</option>
+                <option value="2011-12">2011-12</option>
+            </select>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="table-panel">
+            <div class="table-header">
+                <h3 id="table-title">School Districts</h3>
+                <div class="legend" id="legend"></div>
+            </div>
+            <div style="overflow:auto;">
+                <table id="data-table">
+                    <thead>
+                        <tr>
+                            <th>School District</th>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load MapLibre GL -->
+    <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
+
+    <!-- Load D3 -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <script>
+        // Make the map
+        const map = new maplibregl.Map({
+            container: 'map',  // The id of the map <div>
+            style: 'https://demotiles.maplibre.org/style.json',
+            center: [-73.7, 40.7],  // NY area center
+            zoom: 5
+        });
+
+        // Add zoom/rotation controls
+        map.addControl(new maplibregl.NavigationControl());
+
+        // Color palette for choropleth
+        //const palette = ['#edf2fb','#c1d3fe','#a9c1ff','#7da2fa','#4f7cf3','#2f57d9'];
+
+        // Dropdowns at top of page
+        const metricSel = document.getElementById('metric');
+        const yearSel = document.getElementById('year');
+
+        // Keep track of clicked districts
+        let selectedDistricts = [];
+
+
+        // Putting things on the map
+        map.on('load', () => {
+            // Use D3 to load the geojson
+            const districts = d3.json('interactive_data.geojson');
+
+            // Wait until the file is loaded
+            Promise.all([districts]).then((data) => {
+                const geojson = data[0];  // Load the geojson object
+
+                // Add the source to the map
+                map.addSource('schoolDistricts', {
+                    type: 'geojson',
+                    data: geojson
+                });
+
+                // Add a fill layer (choropleth polygons)
+                map.addLayer({
+                    id: 'schoolDistricts-fill',
+                    type: 'fill',
+                    source: 'schoolDistricts',
+                    paint: {
+                    'fill-color': '#88c',
+                    //'fill-color': ['get', 'color'], // expects a "color" property per feature
+                    'fill-opacity': 0.5
+                    }
+                });
+
+                // Add an outline layer (borders)
+                map.addLayer({
+                    id: 'schoolDistricts-outline',
+                    type: 'line',
+                    source: 'schoolDistricts',
+                    paint: {
+                    'line-color': '#000',
+                    'line-width': 1
+                    }
+                });
+
+                // Create a popup object (no close button, no click required)
+                const popup = new maplibregl.Popup({
+                    closeButton: false,
+                    closeOnClick: false
+                });
+
+                map.on('mousemove', 'schoolDistricts-fill', function(e) {
+                    const metric = metricSel.value;
+                    const f = e.features[0];
+                    const districtYear = f.properties.year;
+                    const districtName = f.properties.district;
+                    const countyName = f.properties.county;
+                    const value = f.properties[metric] || "NA";
+
+                    // What will be within the popup
+                    popup.setLngLat(e.lngLat)
+                        .setHTML("<b>" + 
+                            districtName + 
+                            "</b><br>" +
+                            metric + 
+                            " (" + 
+                            districtYear + 
+                            "): " + 
+                            value + 
+                            "<br>" +
+                            "County: " + 
+                            countyName)
+                        .addTo(map);
+                    });
+
+                // Remove popup when leaving the layer
+                map.on('mouseleave', 'schoolDistricts-fill', function() {
+                    popup.remove();
+                });
+
+                // Add a clicked district to the table
+                map.on('click', 'schoolDistricts-fill', function(e) {
+                    const metric = metricSel.value;
+                    const year = yearSel.value;
+                    const f = e.features[0];
+
+                    // Check if district is already in list
+                    let already = false;
+                    for (let i = 0; i < selectedDistricts.length; i++) {
+                        if (selectedDistricts[i].properties.district === f.properties.district &&
+                            selectedDistricts[i].properties.year === f.properties.year) {
+                        already = true;
+                        }
+                    }
+
+                    if (!already) {
+                        selectedDistricts.push(f);
+                    }
+
+                    // Update the table with all selected districts
+                    updateTable(selectedDistricts, metric, year);
+                });
+
+                renderAll(geojson);
+            });
+        });
+
+        // Render function: recolor map + update table
+        function renderAll(geojson) {
+            const metric = metricSel.value;
+            const year = yearSel.value;
+
+            // Get values for the chosen year
+            let values = [];
+            for (let i = 0; i < geojson.features.length; i++) {
+                let f = geojson.features[i];
+                if (f.properties.year === year && f.properties[metric] != null) {
+                values.push(f.properties[metric]);
+                }
+            }
+
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+
+            // Assign colors
+            for (let i = 0; i < geojson.features.length; i++) {
+                let f = geojson.features[i];
+                let v = (f.properties.year === year) ? f.properties[metric] : null;
+                if (v == null) {
+                f.properties.color = "#ccc";
+                } else {
+                let idx = Math.floor(((v - min) / (max - min)) * (palette.length - 1));
+                f.properties.color = palette[idx];
+                }
+            }
+
+            // Update source
+            map.getSource('schoolDistricts').setData(geojson);
+
+            // Update table
+            updateTable(geojson, metric, year);
+        }
+
+        // Table update function - on click
+        function updateTable(features, metric, year) {
+            const tbody = document.querySelector('#data-table tbody');
+            const title = document.getElementById('table-title');
+            title.textContent = "Selected Districts — " + metric + " (" + year + ")";
+            tbody.innerHTML = "";
+
+            for (let i = 0; i < features.length; i++) {
+                let f = features[i];
+                let row = "<tr><td>" + f.properties.district + "</td>" +
+                        "<td>" + metric + "</td>" +
+                        "<td>" + (f.properties[metric] || "NA") + "</td></tr>";
+                tbody.innerHTML += row;
+            }
+        }
+  </script>
+</body>
+
+</html>
