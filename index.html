@@ -97,7 +97,11 @@
         map.addControl(new maplibregl.NavigationControl());
 
         // Color palette for choropleth
-        //const palette = ['#edf2fb','#c1d3fe','#a9c1ff','#7da2fa','#4f7cf3','#2f57d9'];
+        const palette = ['#edf2fb','#c1d3fe','#a9c1ff','#7da2fa']//,'#4f7cf3','#2f57d9'];
+
+        const colorScale = d3.scaleQuantize()
+        .domain([min, max])
+        .range(palette);
 
         // Dropdowns at top of page
         const metricSel = document.getElementById('metric');
@@ -192,9 +196,9 @@
                     type: 'fill',
                     source: 'schoolDistricts',
                     paint: {
-                        'fill-color': '#88c',
-                        //'fill-color': ['get', 'color'], // expects a "color" property per feature
-                        'fill-opacity': 0.5
+                        //'fill-color': '#88c',
+                        'fill-color': ['get', 'color'],
+                        'fill-opacity': 0.7
                     }
                 });
 
@@ -217,29 +221,26 @@
 
                 map.on('mousemove', 'schoolDistricts-fill', function(e) {
                     const metric = metricSel.value; // selected from dropdown
+                    const metricLabel = metricSel.options[metricSel.selectedIndex].text; 
                     const year = yearSel.value; // selected from dropdown
                     const f = e.features[0];
                     const id = f.properties.SED_CODE_1;
 
                     // Lookup in metricsDict
                     const entry = metricsDict[id] && metricsDict[id][year];
-                    const districtName = entry ? entry.district : "Unknown";
-                    const countyName   = entry ? entry.county   : "Unknown";
-                    const value        = entry ? entry[metric] : "NA";
+                    const districtName = entry ? entry.district: "Unknown";
+                    const countyName = entry ? entry.county: "Unknown";
+                    const localeName = entry ? entry.locale_group: "Unknown";
+                    const value = entry ? entry[metric]: "NA";
 
                     // What will be within the popup
                     popup.setLngLat(e.lngLat)
-                        .setHTML("<b>" + 
-                            districtName + 
-                            "</b><br>" +
-                            metric + 
-                            " (" + 
-                            year + 
-                            "): " + 
-                            value + 
+                        .setHTML("<b>" + districtName + "</b><br>" +
+                            metricLabel + " (" + year + "): " + value + 
                             "<br>" +
-                            "County: " + 
-                            countyName)
+                            "Locale: " + localeName +
+                            "<br>" +
+                            "County: " + countyName)
                         .addTo(map);
                 });
 
@@ -248,11 +249,104 @@
                     popup.remove();
                 });
 
+                // Add a clicked sitrict to the table
+                map.on('click', 'schoolDistricts-fill', (e) => {
+                    const metric = metricSel.value;
+                    const year = yearSel.value;
+                    const feature = e.features[0];
+                    const id = feature.properties.SED_CODE_1; // or nces_id
 
+                    // Check if already selected
+                    const alreadySelected = selectedDistricts.some(
+                        f => f.id === id && f.year === year
+                    );
 
+                    if (!alreadySelected) {
+                        // Track the district and year
+                        selectedDistricts.push({ id, year });
+                    }
 
+                    // Update the table with all selected districts
+                    updateTable(selectedDistricts, metric, year, metricsDict);
+                });
+
+                renderAll(districtsGeojson)
             });
         });
+
+        // Table update - on click
+        function updateTable(selectedDistricts, metric, year, metricsDict) {
+            const tbody = document.querySelector('#data-table tbody');
+            const title = document.getElementById('table-title');
+            const metricLabel = metricSel.options[metricSel.selectedIndex].text;
+            title.textContent = `Selected Districts — ${metricLabel} (${year})`;
+            tbody.innerHTML = '';
+
+            selectedDistricts.forEach(sel => {
+                const entry = metricsDict[sel.id] && metricsDict[sel.id][sel.year];
+                const districtName = entry ? entry.district: "Unknown";
+                const value = entry ? entry[metric]: "NA";
+
+                const tr = document.createElement('tr');
+                const tdKey = document.createElement('td');
+                tdKey.textContent = districtName;
+                const tdMetric = document.createElement('td');
+                tdMetric.textContent = metricLabel;
+                const tdValue = document.createElement('td');
+                tdValue.textContent = value;
+                tr.appendChild(tdKey);
+                tr.appendChild(tdMetric);
+                tr.appendChild(tdValue);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderAll(geojson, metricsDict) {
+            const metric = metricSel.value;
+            const metricLabel = metricSel.options[metricSel.selectedIndex].text;
+            const year = yearSel.value;
+
+            // Collect values for chosen year
+            let values = [];
+            geojson.features.forEach(f => {
+                const id = f.properties.SED_CODE_1;
+                const entry = metricsDict[id] && metricsDict[id][year];
+                if (entry && entry[metric] != null) {
+                values.push(entry[metric]);
+                }
+            });
+
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+
+            const colorScale = d3.scaleQuantize()
+            .domain([min, max])
+            .range(palette);
+
+            // Assign colors based on dictionary values
+            geojson.features.forEach(f => {
+                const id = f.properties.SED_CODE_1;
+                const entry = metricsDict[id] && metricsDict[id][year];
+                const v = entry ? entry[metric] : null;
+
+                f.properties.color = v == null ? "#ccc" : colorScale(v);
+
+                //if (v == null) {
+                //f.properties.color = "#ccc"; // grey for missing data
+                //} else {
+                //const idx = Math.floor(((v - min) / (max - min)) * (palette.length - 1));
+                //f.properties.color = palette[idx];
+                //}
+            });
+
+            // Update source
+            map.getSource('schoolDistricts').setData(geojson);
+
+            // Update table with selected districts (if any)
+            updateTable(selectedDistricts, metric, year, metricsDict);
+            }
+
+
 
 
 
