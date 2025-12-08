@@ -1,7 +1,6 @@
 interactive_data.geojson
+data/interactive_data.csv
+data/NYS_Schools_3089706237687211859.geojson
 data/clean
 data/raw
-data/final_data.csv
-data/final_data.geojson
-data/interactive_data.csv
 scratch
