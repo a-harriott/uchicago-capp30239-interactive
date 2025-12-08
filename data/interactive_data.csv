@@ -1,4 +1,4 @@
-year,district,county,locale_group,highest_grade,enrollment,pupil_teacher,revenue,revenue_local,revenue_state,revenue_federal,revenue_pupil,revenue_local_pupil,revenue_state_pupil,revenue_federal_pupil,expenditure,expenditure_pupil,expenditure_instruction_pupil,expenditure_support_pupil,nces_id,aggregation_code,grad_rate,ard_rate
+year,district,county,locale_group,highest_grade,enrollment,pupil_teacher,revenue,revenue_local,revenue_state,revenue_federal,revenue_pupil,revenue_local_pupil,revenue_state_pupil,revenue_federal_pupil,expenditure,expenditure_pupil,expenditure_instruction_pupil,expenditure_support_pupil,nces_id,SED_CODE_1,grad_rate,ard_rate
 2021-22,ABBOTT UNION FREE SCHOOL DISTRICT,Westchester County,,,,,,,,,,,,,,,,,3602300,,,
 2021-22,ACADEMIC LEADERSHIP CHARTER SCHOOL,Bronx County,City,8th Grade,595.9995348296313,48.61,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,5125000.0,8599.0,4641.0,3713.0,3601001,320700860957.0,,
 2021-22,ACADEMY CHARTER SCHOOL,Nassau County,Suburb,12th Grade,1852.006231316576,18.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,43987000.0,23751.0,9297.0,12214.0,3600997,280201860934.0,,
