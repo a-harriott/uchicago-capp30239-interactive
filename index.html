@@ -113,8 +113,8 @@
         // Putting things on the map
         map.on('load', () => {
             // Use D3 to load the geojson and csv
-            const districts = d3.json('NYS_Schools_3089706237687211859.geojson');
-            const metrics = d3.csv('interactive_data.csv', (d) => {
+            const districts = d3.json('data/NYS_Schools_3089706237687211859.geojson');
+            const metrics = d3.csv('data/interactive_data.csv', (d) => {
                 return {
                     year: d.year,
                     district: d.district,
