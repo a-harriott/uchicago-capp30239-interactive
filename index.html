@@ -3,22 +3,29 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MapLibre Choropleth with Table</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ally's Interactive Project</title>
 
-    <!-- MapLibre GL CSS -->
+    <!-- MapLibre GL css -->
     <link
-    href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css"
-    rel="stylesheet"
+    href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"
     />
 
-    <!-- Your custom stylesheet -->
-    <link rel="stylesheet" href="custom.css" />
+    <!-- My stylesheet -->
+    <link rel="stylesheet" href="stylesheets/custom.css" />
 </head>
 
 <body>
-    <div class="app">
+    
+    <header>
+        <h1>My Project</h1>
+    </header>
+    
+
+    <main class="app">
+
         <div class="toolbar">
+
             <label for="metric">Metric</label>
             <select id="metric">
                 <option value="pupil_teacher" selected>Pupil per Teacher Ratio</option>
@@ -43,27 +50,36 @@
             </select>
         </div>
 
-        <div id="map"></div>
+        <div class="map-table-grid">
+            <div id="map"></div>
 
-        <div class="table-panel">
-            <div class="table-header">
-                <h3 id="table-title">School Districts</h3>
-                <div class="legend" id="legend"></div>
-            </div>
-            <div style="overflow:auto;">
-                <table id="data-table">
-                    <thead>
-                        <tr>
-                            <th>School District</th>
-                            <th>Metric</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div class="table-panel">
+
+                <div class="table-header">
+                    <h3 id="table-title">School Districts</h3>
+                    <div class="legend" id="legend"></div>
+                </div>
+
+                <!-- Scrollable table wrapper -->
+                <div style="overflow:auto;">
+
+                    <table id="data-table">
+                        <thead>
+                            <tr>
+                                <th>School District</th>
+                                <th>Metric</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+
+                        <tbody></tbody>
+
+                    </table>
+
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Load MapLibre GL -->
     <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>

@@ -1,0 +1,182 @@
+:root {
+    --bg: #efefef;        /* main background: light grayish tan */
+    --panel: #ffffff;     /* panels: white */
+    --text: #1a1a1a;      /* primary text: near black */
+    --muted: #6c757d;     /* muted text: gray */
+    --border: #dee2e6;    /* light gray borders */
+    --accent: #4f7cf3;    /* accent: keep blue for contrast */
+    --good: #28a745;      /* success green */
+    --bad: #dc3545;       /* error red */
+}
+
+html, 
+body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, Helvetica, Arial, sans-serif; /* font stack - choose first available */
+}
+
+header h1 {
+    margin-left: 12px;
+    text-align: left;
+    /*font-size: 40px;*/
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  /* height: 100vh; */ /*forces .app to stretch the full height of the browser window*/
+}
+
+.toolbar {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toolbar select {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+}
+
+.toolbar label {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.map-table-grid {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 12px; /* spacing between map and table */
+  padding-right: 12px;
+  box-sizing: border-box;
+  flex: 1;   /* makes the grid fill the remaining height */
+}
+
+#map {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    min-height: 420px;
+}
+
+.table-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.table-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.table-header .legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    color: var(--muted);
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+}
+
+tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+
+tbody tr:hover {
+    background: #f1f3f5;
+}
+
+/* REMOVE */
+
+/* used for little color boxes in a legend */
+.swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    display: inline-block;
+}
+
+/* only matter if you’re rendering rows with those classes. */
+.row-key {
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* only matter if you’re rendering rows with those classes. */
+.row-value {
+    color: var(--muted);
+}
+
+/* a pill‑shaped badge style, if you render badges */
+.value-badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #10132a;
+    color: var(--text);
+    font-size: 12px;
+}
+
+/* only applies if you’re using custom tooltips */
+.tooltip {
+    background: rgba(23, 26, 43, 0.95);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+/* only matters if you actually have a footer element */
+.footer {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
