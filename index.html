@@ -16,7 +16,7 @@
 <body>
     
     <header>
-        <h1>My Project</h1>
+        <h1>Investigating Key Features of New York State School Districts</h1>
     </header>
 
     <main class="app">
@@ -26,7 +26,7 @@
             <label for="metric">Metric</label>
             <select id="metric">
                 <option value="pupil_teacher" selected>Pupil per Teacher Ratio</option>
-                <option value="revenue">Total Revenue</option>
+                <option value="revenue_pupil">Total Revenue per Pupil</option>
                 <option value="expenditure_pupil">Total Expenditure per Pupil</option>
                 <option value="grad_rate">Graduation Rate</option>
             </select>
@@ -76,6 +76,14 @@
                 </div>
             </div>
         </div>
+
+        <!-- Line chart -->
+        <div class="chart-panel">
+            <div class="chart-header">
+                <h3 id="chart-title">Trend Over Time</h3>
+            </div>
+            <div id="linechart"></div>
+        </div>
     </main>
 
     <!-- Load MapLibre GL -->
@@ -97,11 +105,7 @@
         map.addControl(new maplibregl.NavigationControl());
 
         // Color palette for choropleth
-        const palette = ['#edf2fb','#c1d3fe','#a9c1ff','#7da2fa']//,'#4f7cf3','#2f57d9'];
-
-        const colorScale = d3.scaleQuantize()
-        .domain([min, max])
-        .range(palette);
+        const uniform_palette = ['#edf2fb','#c1d3fe','#a9c1ff','#7da2fa','#4f7cf3','#2f57d9'];
 
         // Dropdowns at top of page
         const metricSel = document.getElementById('metric');
@@ -109,10 +113,6 @@
 
         // Keep track of clicked districts
         let selectedDistricts = [];
-
-
-
-
 
         // Putting things on the map
         map.on('load', () => {
@@ -172,7 +172,7 @@
                         revenue_federal: +d.revenue_federal,
                         revenue_pupil: +d.revenue_pupil,
                         revenue_local_pupil: +d.revenue_local_pupil,
-                        revenue_state_pupil: +d.revenue_state_pupil, // fixed typo
+                        revenue_state_pupil: +d.revenue_state_pupil,
                         revenue_federal_pupil: +d.revenue_federal_pupil,
                         expenditure: +d.expenditure,
                         expenditure_pupil: +d.expenditure_pupil,
@@ -268,9 +268,22 @@
 
                     // Update the table with all selected districts
                     updateTable(selectedDistricts, metric, year, metricsDict);
+
+                    // Update the line chart
+                    updateLineChart(id, metric, metricsDict);
+
                 });
 
-                renderAll(districtsGeojson)
+                renderAll(districtsGeojson, metricsDict)
+
+                metricSel.addEventListener('change', () => {
+                    renderAll(map.getSource('schoolDistricts')._data, metricsDict);
+                });
+
+                    yearSel.addEventListener('change', () => {
+                    renderAll(map.getSource('schoolDistricts')._data, metricsDict);
+                });
+
             });
         });
 
@@ -301,6 +314,46 @@
             });
         }
 
+        // Function to get choropleth palette
+        function getPalette(metric) {
+            const my_blue_palette = [
+                "#e8f5e9", // very light green
+                "#a5d6a7", // light
+                "#66bb6a", // medium
+                "#388e3c", // dark
+                "#1b5e20"  // very dark
+            ];
+
+            const my_green_palette = [
+                "#e8f5e9", // very light green
+                "#a5d6a7", // light
+                "#66bb6a", // medium
+                "#388e3c", // dark
+                "#1b5e20"  // very dark
+            ];
+
+            const my_orange_palette = [
+                "#fff3e0", // very light orange
+                "#ffcc80", // light
+                "#fb8c00", // medium
+                "#ef6c00", // dark
+                "#e65100"  // very dark
+            ]
+
+            const my_purple_palette = [
+                "#f3e5f5", // very light purple
+                "#ce93d8", // light
+                "#ab47bc", // medium
+                "#7b1fa2", // dark
+                "#4a148c"  // very dark
+            ]
+
+            if (metric === "pupil_teacher") return my_blue_palette;
+            if (metric === "revenue_pupil") return my_green_palette;
+            if (metric === "expenditure_pupil") return my_orange_palette;
+            if (metric === "grad_rate") return my_purple_palette;
+        }
+
         function renderAll(geojson, metricsDict) {
             const metric = metricSel.value;
             const metricLabel = metricSel.options[metricSel.selectedIndex].text;
@@ -316,12 +369,18 @@
                 }
             });
 
+            // color palette
             const min = Math.min(...values);
             const max = Math.max(...values);
 
+            const palette = getPalette(metric);
             const colorScale = d3.scaleQuantize()
             .domain([min, max])
             .range(palette);
+            
+            //const colorScale = d3.scaleQuantize()
+            //.domain([min, max])
+            //.range(uniform_palette);
 
             // Assign colors based on dictionary values
             geojson.features.forEach(f => {
@@ -330,195 +389,105 @@
                 const v = entry ? entry[metric] : null;
 
                 f.properties.color = v == null ? "#ccc" : colorScale(v);
-
-                //if (v == null) {
-                //f.properties.color = "#ccc"; // grey for missing data
-                //} else {
-                //const idx = Math.floor(((v - min) / (max - min)) * (palette.length - 1));
-                //f.properties.color = palette[idx];
-                //}
             });
+
+            console.log("Metric:", metric, "Year:", year);
+            console.log("Values collected:", values);
+            console.log("Min:", min, "Max:", max);    
 
             // Update source
             map.getSource('schoolDistricts').setData(geojson);
 
             // Update table with selected districts (if any)
             updateTable(selectedDistricts, metric, year, metricsDict);
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- /*
-        // Putting things on the map
-        map.on('load', () => {
-            // Use D3 to load the geojson
-            const districts = d3.json('interactive_data.geojson');
-
-            // Wait until the file is loaded
-            Promise.all([districts]).then((data) => {
-                const geojson = data[0];  // Load the geojson object
-
-                // Add the source to the map
-                map.addSource('schoolDistricts', {
-                    type: 'geojson',
-                    data: geojson
-                });
-
-                // Add a fill layer (choropleth polygons)
-                map.addLayer({
-                    id: 'schoolDistricts-fill',
-                    type: 'fill',
-                    source: 'schoolDistricts',
-                    paint: {
-                    'fill-color': '#88c',
-                    //'fill-color': ['get', 'color'], // expects a "color" property per feature
-                    'fill-opacity': 0.5
-                    }
-                });
-
-                // Add an outline layer (borders)
-                map.addLayer({
-                    id: 'schoolDistricts-outline',
-                    type: 'line',
-                    source: 'schoolDistricts',
-                    paint: {
-                    'line-color': '#000',
-                    'line-width': 1
-                    }
-                });
-
-                // Create a popup object (no close button, no click required)
-                const popup = new maplibregl.Popup({
-                    closeButton: false,
-                    closeOnClick: false
-                });
-
-                map.on('mousemove', 'schoolDistricts-fill', function(e) {
-                    const metric = metricSel.value;
-                    const f = e.features[0];
-                    const districtYear = f.properties.year;
-                    const districtName = f.properties.district;
-                    const countyName = f.properties.county;
-                    const value = f.properties[metric] || "NA";
-
-                    // What will be within the popup
-                    popup.setLngLat(e.lngLat)
-                        .setHTML("<b>" + 
-                            districtName + 
-                            "</b><br>" +
-                            metric + 
-                            " (" + 
-                            districtYear + 
-                            "): " + 
-                            value + 
-                            "<br>" +
-                            "County: " + 
-                            countyName)
-                        .addTo(map);
-                    });
-
-                // Remove popup when leaving the layer
-                map.on('mouseleave', 'schoolDistricts-fill', function() {
-                    popup.remove();
-                });
-
-                // Add a clicked district to the table
-                map.on('click', 'schoolDistricts-fill', function(e) {
-                    const metric = metricSel.value;
-                    const year = yearSel.value;
-                    const f = e.features[0];
-
-                    // Check if district is already in list
-                    let already = false;
-                    for (let i = 0; i < selectedDistricts.length; i++) {
-                        if (selectedDistricts[i].properties.district === f.properties.district &&
-                            selectedDistricts[i].properties.year === f.properties.year) {
-                        already = true;
-                        }
-                    }
-
-                    if (!already) {
-                        selectedDistricts.push(f);
-                    }
-
-                    // Update the table with all selected districts
-                    updateTable(selectedDistricts, metric, year);
-                });
-
-                renderAll(geojson);
-            });
-        });
-
-        // Render function: recolor map + update table
-        function renderAll(geojson) {
-            const metric = metricSel.value;
-            const year = yearSel.value;
-
-            // Get values for the chosen year
-            let values = [];
-            for (let i = 0; i < geojson.features.length; i++) {
-                let f = geojson.features[i];
-                if (f.properties.year === year && f.properties[metric] != null) {
-                values.push(f.properties[metric]);
-                }
-            }
-
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-
-            // Assign colors
-            for (let i = 0; i < geojson.features.length; i++) {
-                let f = geojson.features[i];
-                let v = (f.properties.year === year) ? f.properties[metric] : null;
-                if (v == null) {
-                f.properties.color = "#ccc";
-                } else {
-                let idx = Math.floor(((v - min) / (max - min)) * (palette.length - 1));
-                f.properties.color = palette[idx];
-                }
-            }
-
-            // Update source
-            map.getSource('schoolDistricts').setData(geojson);
-
-            // Update table
-            updateTable(geojson, metric, year);
         }
 
-        // Table update function - on click
-        function updateTable(features, metric, year) {
-            const tbody = document.querySelector('#data-table tbody');
-            const title = document.getElementById('table-title');
-            title.textContent = "Selected Districts — " + metric + " (" + year + ")";
-            tbody.innerHTML = "";
-
-            for (let i = 0; i < features.length; i++) {
-                let f = features[i];
-                let row = "<tr><td>" + f.properties.district + "</td>" +
-                        "<td>" + metric + "</td>" +
-                        "<td>" + (f.properties[metric] || "NA") + "</td></tr>";
-                tbody.innerHTML += row;
-            }
+        // Line chart
+        function getTimeSeriesData(id, metric, metricsDict) {
+            const entries = metricsDict[id];
+            if (!entries) return [];
+            return Object.keys(entries).map(year => ({
+                year: year,
+                value: entries[year][metric]
+            })).sort((a, b) => d3.ascending(a.year, b.year));
         }
-*/
+
+        function updateLineChart(id, metric, metricsDict) {
+            const data = getTimeSeriesData(id, metric, metricsDict);
+
+            // Clear old chart
+            d3.select("#linechart").selectAll("*").remove();
+
+            const svgWidth = 600, svgHeight = 300;
+            const margin = { top: 20, right: 20, bottom: 40, left: 60 };
+
+            const svg = d3.select("#linechart")
+                .append("svg")
+                .attr("width", svgWidth)
+                .attr("height", svgHeight)
+                .style("background", "var(--panel)")
+                .style("border", "1px solid var(--border)")
+                .style("border-radius", "10px");
+
+            const chartWidth = svgWidth - margin.left - margin.right;
+            const chartHeight = svgHeight - margin.top - margin.bottom;
+
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            // Scales
+            const x = d3.scalePoint()
+                .domain(data.map(d => d.year))
+                .range([0, chartWidth]);
+
+            const y = d3.scaleLinear()
+                .domain([d3.min(data, d => d.value), d3.max(data, d => d.value)])
+                .nice()
+                .range([chartHeight, 0]);
+
+            // Axes
+            g.append("g")
+                .attr("class", "x-axis")
+                .attr("transform", `translate(0,${chartHeight})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .style("fill", "var(--muted)")
+                .style("font-size", "12px");
+
+            g.append("g")
+                .attr("class", "y-axis")
+                .call(d3.axisLeft(y))
+                .selectAll("text")
+                .style("fill", "var(--muted)")
+                .style("font-size", "12px");
+
+            g.selectAll(".domain, .tick line")
+                .style("stroke", "var(--border)");
+
+            // Line generator
+            const line = d3.line()
+                .x(d => x(d.year))
+                .y(d => y(d.value));
+
+            // Draw line
+            g.append("path")
+                .datum(data)
+                .attr("class", "line")
+                .attr("fill", "none")
+                .attr("stroke", "var(--accent)")
+                .attr("stroke-width", 2)
+                .attr("d", line);
+
+            // Title
+            svg.append("text")
+                .attr("x", margin.left)
+                .attr("y", margin.top - 5)
+                .attr("fill", "var(--text)")
+                .style("font-size", "14px")
+                .style("font-weight", "600")
+                .text(`Trend for ${metric} (${id})`);
+        }
+
 
   </script>
 </body>
