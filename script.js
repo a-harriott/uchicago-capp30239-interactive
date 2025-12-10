@@ -3,7 +3,7 @@
 const map = new maplibregl.Map({
     container: 'map',  // The id of the map <div>
     style: 'https://demotiles.maplibre.org/style.json', // file describes which tile sources to use and how to render them
-    center: [-73.7, 40.7],  // NY area center
+    center: [-75.7, 42.7],  // NY area center
     zoom: 5
 });
 
