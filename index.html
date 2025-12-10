@@ -114,35 +114,65 @@
         // Keep track of clicked districts
         let selectedDistricts = [];
 
+        // function to catch empty strings from csv
+        // need this because empty strings -> 0 when coerced to numeric with +x
+        function keepNull(x) {
+            if (x === "") {
+                return null;
+            } else {
+                return +x;
+                }
+        }
+        // same function just shorthand
+        //function keepNull(x) {
+        //    return (x === "") ? null : +x;
+        //}
+
+        // make sure to put "NA" instead of "null" for popup
+        function showNullAsNa(entry, metric) {
+            // First check if the entry object exists
+            if (entry) {
+                // Check if metric value is null
+                if (entry[metric] == null) {
+                return "NA";
+                } else {
+                return entry[metric];
+                }
+            } else {
+                // If the entry itself doesn't exist in the data, return "NA"
+                return "NA";
+            }
+        }
+
         // Putting things on the map
         map.on('load', () => {
             // Use D3 to load the geojson and csv
             const districts = d3.json('data/NYS_Schools_3089706237687211859.geojson');
-            const metrics = d3.csv('data/interactive_data.csv', (d) => {
+            const metrics = d3.csv('data/interactive_data_v2.csv', (d) => {
                 return {
                     year: d.year,
                     district: d.district,
                     county: d.county,
                     locale_group: d.locale_group,
                     highest_grade: d.highest_grade,
-                    enrollment: d.enrollment,
-                    pupil_teacher: +d.pupil_teacher,
-                    revenue: +d.revenue,
-                    revenue_local: +d.revenue_local,
-                    revenue_state: +d.revenue_state,
-                    revenue_federal: +d.revenue_federal,
-                    revenue_pupil: +d.revenue_pupil,
-                    revenue_local_pupil: +d.revenue_local_pupil,
-                    revenue_state_pupil: +d.revenue_state_pupil,
-                    revenue_federal_pupil: +d.revenue_pupil,
-                    expenditure: +d.expenditure,
-                    expenditure_pupil: +d.expenditure_pupil,
-                    expenditure_instruction_pupil: +d.expenditure_instruction_pupil,
-                    expenditure_support_pupil: +d.expenditure_support_pupil,
+                    enrollment: keepNull(d.enrollment),
+                    pupil_teacher: keepNull(d.pupil_teacher),
+                    revenue: keepNull(d.revenue),
+                    revenue_local: keepNull(d.revenue_local),
+                    revenue_state: keepNull(d.revenue_state),
+                    revenue_federal: keepNull(d.revenue_federal),
+                    revenue_pupil: keepNull(d.revenue_pupil),
+                    revenue_local_pupil: keepNull(d.revenue_local_pupil),
+                    revenue_state_pupil: keepNull(d.revenue_state_pupil),
+                    revenue_federal_pupil: keepNull(d.revenue_pupil),
+                    expenditure: keepNull(d.expenditure),
+                    expenditure_pupil: keepNull(d.expenditure_pupil),
+                    expenditure_instruction_pupil: keepNull(d.expenditure_instruction_pupil),
+                    expenditure_support_pupil: keepNull(d.expenditure_support_pupil),
                     nces_id: d.nces_id,
                     SED_CODE_1: d.SED_CODE_1,
-                    grad_rate: +d.grad_rate,
-                    ard_rate: +d.ard_rate 
+                    grad_rate: keepNull(d.grad_rate),
+                    ard_rate: keepNull(d.ard_rate) 
                 }
             });
 
@@ -152,7 +182,7 @@
                 const metricsDict = {};
 
                 metricsCSV.forEach(d => {
-                    const id = d.SED_CODE_1;   // or d.nces_id, whichever matches your GeoJSON
+                    const id = d.SED_CODE_1;
                     const year = d.year;
 
                     if (!metricsDict[id]) {
@@ -164,22 +194,22 @@
                         county: d.county,
                         locale_group: d.locale_group,
                         highest_grade: d.highest_grade,
-                        enrollment: +d.enrollment,
-                        pupil_teacher: +d.pupil_teacher,
-                        revenue: +d.revenue,
-                        revenue_local: +d.revenue_local,
-                        revenue_state: +d.revenue_state,
-                        revenue_federal: +d.revenue_federal,
-                        revenue_pupil: +d.revenue_pupil,
-                        revenue_local_pupil: +d.revenue_local_pupil,
-                        revenue_state_pupil: +d.revenue_state_pupil,
-                        revenue_federal_pupil: +d.revenue_federal_pupil,
-                        expenditure: +d.expenditure,
-                        expenditure_pupil: +d.expenditure_pupil,
-                        expenditure_instruction_pupil: +d.expenditure_instruction_pupil,
-                        expenditure_support_pupil: +d.expenditure_support_pupil,
-                        grad_rate: +d.grad_rate,
-                        ard_rate: +d.ard_rate
+                        enrollment: d.enrollment,
+                        pupil_teacher: d.pupil_teacher,
+                        revenue: d.revenue,
+                        revenue_local: d.revenue_local,
+                        revenue_state: d.revenue_state,
+                        revenue_federal: d.revenue_federal,
+                        revenue_pupil: d.revenue_pupil,
+                        revenue_local_pupil: d.revenue_local_pupil,
+                        revenue_state_pupil: d.revenue_state_pupil,
+                        revenue_federal_pupil: d.revenue_federal_pupil,
+                        expenditure: d.expenditure,
+                        expenditure_pupil: d.expenditure_pupil,
+                        expenditure_instruction_pupil: d.expenditure_instruction_pupil,
+                        expenditure_support_pupil: d.expenditure_support_pupil,
+                        grad_rate: d.grad_rate,
+                        ard_rate: d.ard_rate
                     };
                 });
                 console.log(metricsDict);
@@ -231,7 +261,7 @@
                     const districtName = entry ? entry.district: "Unknown";
                     const countyName = entry ? entry.county: "Unknown";
                     const localeName = entry ? entry.locale_group: "Unknown";
-                    const value = entry ? entry[metric]: "NA";
+                    const value = showNullAsNa(entry, metric);
 
                     // What will be within the popup
                     popup.setLngLat(e.lngLat)
@@ -298,7 +328,7 @@
             selectedDistricts.forEach(sel => {
                 const entry = metricsDict[sel.id] && metricsDict[sel.id][sel.year];
                 const districtName = entry ? entry.district: "Unknown";
-                const value = entry ? entry[metric]: "NA";
+                const value = showNullAsNa(entry, metric);
 
                 const tr = document.createElement('tr');
                 const tdKey = document.createElement('td');
@@ -317,11 +347,11 @@
         // Function to get choropleth palette
         function getPalette(metric) {
             const my_blue_palette = [
-                "#e8f5e9", // very light green
-                "#a5d6a7", // light
-                "#66bb6a", // medium
-                "#388e3c", // dark
-                "#1b5e20"  // very dark
+                "#e3f2fd", // very light blue
+                "#90caf9", // light
+                "#42a5f5", // medium
+                "#1976d2", // dark
+                "#0d47a1"  // very dark
             ];
 
             const my_green_palette = [
@@ -364,6 +394,7 @@
             geojson.features.forEach(f => {
                 const id = f.properties.SED_CODE_1;
                 const entry = metricsDict[id] && metricsDict[id][year];
+                // skip null values
                 if (entry && entry[metric] != null) {
                 values.push(entry[metric]);
                 }
@@ -374,8 +405,10 @@
             const max = Math.max(...values);
 
             const palette = getPalette(metric);
-            const colorScale = d3.scaleQuantize()
-            .domain([min, max])
+            //const colorScale = d3.scaleQuantize()
+            //.domain([min, max])
+            const colorScale = d3.scaleQuantile()
+            .domain(values)
             .range(palette);
             
             //const colorScale = d3.scaleQuantize()
@@ -388,7 +421,8 @@
                 const entry = metricsDict[id] && metricsDict[id][year];
                 const v = entry ? entry[metric] : null;
 
-                f.properties.color = v == null ? "#ccc" : colorScale(v);
+                // turn gray if metric is null
+                f.properties.color = v == null ? "#8a8a8a" : colorScale(v);
             });
 
             console.log("Metric:", metric, "Year:", year);
