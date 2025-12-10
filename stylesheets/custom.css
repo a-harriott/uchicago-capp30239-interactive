@@ -18,11 +18,31 @@ body {
     font-family: system-ui, Helvetica, Arial, sans-serif; /* font stack - choose first available */
 }
 
-header h1 {
+header {
     margin-left: 12px;
     text-align: left;
     /*font-size: 40px;*/
 }
+
+header h1 {
+    margin-bottom: 0px;
+}
+
+header p {
+    margin-top: 0px;
+    font-style: italic;
+}
+
+.explanation {
+    margin-left: 12px;
+    text-align: justify; 
+    margin-right: 12px;
+}
+
+.page-footer {
+  height: 30px;
+}
+
 
 .app {
     display: flex;

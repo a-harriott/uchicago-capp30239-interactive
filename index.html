@@ -16,8 +16,21 @@
 <body>
     
     <header>
-        <h1>Investigating Key Features of New York State School Districts</h1>
+        <h1>Investigating Key Metrics of New York State School Districts</h1>
+        <p>by Alexandrea Harriott</p>
     </header>
+
+    <div class="explanation">
+        <p>
+            Education is one of the most powerful forces shaping opportunity, equity, and community well‑being. Yet the resources available to schools, the outcomes they achieve, and the conditions in which teachers and students work vary widely across districts. Understanding these differences is essential for anyone interested in how funding, staffing, and student success intersect across New York State. This project provides an interactive way to explore those dynamics, focusing on four key metrics: 
+            <strong>graduation rate</strong>, 
+            <strong>total revenue per pupil</strong>, 
+            <strong>total expenditure per pupil</strong>, and 
+            <strong>pupil‑to‑teacher ratio</strong>.
+            <br><br>
+            Use the map to view statewide patterns or zoom in on a specific district to see how these metrics compare locally. Hover over districts to reveal detailed values, click on a district to add it to the table for comparison across different districts, and watch the line chart update with information about the school district you clicked on to show trends over time and compare with the state average. By moving between the statewide view and individual districts, you can uncover how resources and outcomes differ across communities and how those differences evolve year by year.
+        </p>
+    </div>
 
     <main class="app">
 
@@ -90,6 +103,27 @@
             <div id="linechart"></div>
         </div>
     </main>
+
+    <div class="explanation">
+        <h2 style="margin-bottom: 0px">Data Sources</h2>
+        <ul style="margin-top: 5px">
+            <li>
+            <a href="https://nces.ed.gov/ccd/elsi/tableGenerator.aspx" target="_blank">
+                National Center for Education Statistics (NCES) Table Generator
+            </a> – provides school finance and demographic data at the district level.
+            </li>
+            <li>
+            <a href="https://data.nysed.gov/downloads.php" target="_blank">
+                New York State Education Department (NYSED)
+            </a> – offers detailed metrics on graduation rates, revenue, expenditure, and staffing.
+            </li>
+            <li>
+            <a href="https://data.gis.ny.gov/datasets/sharegisny::school-districts/explore" target="_blank">
+                New York State School District Shapefiles
+            </a> – supplies geographic boundaries for mapping districts across the state.
+            </li>
+        </ul>
+    </div>
 
     <!-- Load MapLibre GL -->
     <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
@@ -704,7 +738,10 @@
         }
 
 
-  </script>
-</body>
+    </script>
+    <!-- Your page content -->
 
+    <footer class="page-footer"></footer>
+
+</body>
 </html>
