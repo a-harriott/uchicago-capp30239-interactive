@@ -170,6 +170,7 @@ tbody tr:hover {
 .chart-panel {
     display: flex;
     flex-direction: column;
+    align-items: center;
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -191,12 +192,14 @@ tbody tr:hover {
 }
 
 #linechart {
-    width: 60%;
+    width: 55%;
+    display: block; 
 }
 
 #linechart svg {
     width: 100%;
     height: 300px;
+    display: block;
 }
 
 #linechart .axis path,
@@ -207,10 +210,4 @@ tbody tr:hover {
 #linechart .axis text {
     fill: var(--muted);
     font-size: 12px;
-}
-
-#linechart path.line {
-    stroke: var(--accent);
-    stroke-width: 2;
-    fill: none;
 }

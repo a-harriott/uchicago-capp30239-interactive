@@ -311,6 +311,7 @@
                 // Add a clicked sitrict to the table
                 map.on('click', 'schoolDistricts-fill', (e) => {
                     const metric = metricSel.value;
+                    const metricLabel = metricSel.options[metricSel.selectedIndex].text;
                     const year = yearSel.value;
                     const feature = e.features[0];
                     const id = feature.properties.SED_CODE_1; // or nces_id
@@ -329,7 +330,7 @@
                     updateTable(selectedDistricts, metric, year, metricsDict);
 
                     // Update the line chart
-                    updateLineChart(id, metric, metricsDict);
+                    updateLineChart(id, metric, metricsDict, metricLabel);
 
                 });
 
@@ -512,14 +513,14 @@
             })).sort((a, b) => d3.ascending(a.year, b.year));
         }
 
-        function updateLineChart(id, metric, metricsDict) {
+        function updateLineChart(id, metric, metricsDict, metricLabel) {
             const data = getTimeSeriesData(id, metric, metricsDict);
 
             // Clear old chart
             d3.select("#linechart").selectAll("*").remove();
 
             const svgWidth = 600, svgHeight = 300;
-            const margin = { top: 20, right: 20, bottom: 40, left: 60 };
+            const margin = { top: 30, right: 20, bottom: 40, left: 75 };
 
             const svg = d3.select("#linechart")
                 .append("svg")
@@ -535,7 +536,7 @@
             const g = svg.append("g")
                 .attr("transform", `translate(${margin.left},${margin.top})`);
 
-            // Scales
+            // Scaling
             const x = d3.scalePoint()
                 .domain(data.map(d => d.year))
                 .range([0, chartWidth]);
@@ -556,7 +557,8 @@
 
             g.append("g")
                 .attr("class", "y-axis")
-                .call(d3.axisLeft(y))
+                .call(d3.axisLeft(y)
+                    .tickFormat(d => displayFormat(d, metric)))
                 .selectAll("text")
                 .style("fill", "var(--muted)")
                 .style("font-size", "12px");
@@ -564,17 +566,53 @@
             g.selectAll(".domain, .tick line")
                 .style("stroke", "var(--border)");
 
+            // Axis labels
+            // X axis label
+            svg.append("text")
+            .attr("class", "x label")
+            .attr("text-anchor", "middle")
+            .attr("x", margin.left + chartWidth / 2)   // center under the chart
+            .attr("y", svgHeight - 5)                  // a little below the x-axis
+            .style("font-size", "12px")
+            .style("fill", "var(--muted)")
+            .style("font-weight", "bold")
+            .text("Year");
+
+            // Y axis label
+            svg.append("text")
+            .attr("class", "y label")
+            .attr("text-anchor", "middle")
+            .attr("transform", `rotate(-90)`)
+            .attr("x", -(margin.top + chartHeight / 2)) // center along y-axis
+            .attr("y", 15)                              // a little left of the y-axis
+            .style("font-size", "12px")
+            .style("fill", "var(--muted)")
+            .style("font-weight", "bold")
+            .text(metricLabel);
+
+            // Title
+            const entry = Object.values(metricsDict[id])[0];  // first year’s entry object
+            const districtName = entry ? entry.district : "Unknown";
+            svg.append("text")
+                .attr("x", margin.left)
+                .attr("y", margin.top - 5)
+                .attr("fill", "var(--text)")
+                .style("font-size", "14px")
+                .style("font-weight", "600")
+                .text(`Trend for ${metricLabel} (${districtName})`);
+
             // Line generator
             const line = d3.line()
                 .x(d => x(d.year))
                 .y(d => y(d.value));
 
             // Draw line
+            const lineColor = getPalette(metric)[2];
             g.append("path")
                 .datum(data)
                 .attr("class", "line")
                 .attr("fill", "none")
-                .attr("stroke", "var(--accent)")
+                .attr("stroke", lineColor)
                 .attr("stroke-width", 2)
                 .attr("d", line);
 
@@ -587,7 +625,7 @@
             .attr("cx", d => x(d.year))
             .attr("cy", d => y(d.value))
             .attr("r", 4)
-            .attr("fill", "var(--accent)")
+            .attr("fill", lineColor)
             .attr("stroke", "#fff")
             .attr("stroke-width", 1.5);
         }
