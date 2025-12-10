@@ -29,6 +29,10 @@ function keepNull(x) {
         return +x;
         }
 }
+
+// AI: I wanted to make sure my showNullAsNa function was working correctly and
+// Copilot showed me how to write the function in shorthand.
+
 // same function just shorthand
 //function keepNull(x) {
 //    return (x === "") ? null : +x;
@@ -178,6 +182,8 @@ map.on('load', () => {
             closeOnClick: false
         });
 
+        // AI: I couldn't figure out how to get the website label for a metric
+        // to show and Copilot retruned the metricSel.options line
         map.on('mousemove', 'schoolDistricts-fill', function(e) {
             const metric = metricSel.value; // selected from dropdown
             const metricLabel = metricSel.options[metricSel.selectedIndex].text; 
@@ -378,6 +384,8 @@ function renderAll(geojson, metricsDict) {
 // Legend
 function updateLegend(colorScale, metric) {
     const legend = d3.select("#map-legend");
+    // AI: I asked Copilot how to update the legend and it showed me this
+    // legend.selectAll("*") notation
     legend.selectAll("*").remove(); // clear old legend
 
     const thresholds = colorScale.quantiles ? colorScale.quantiles() : colorScale.thresholds();
@@ -427,6 +435,8 @@ function getTimeSeriesData(id, metric, metricsDict) {
     })).sort((a, b) => d3.ascending(a.year, b.year));
 }
 
+// AI: I was having trouble with my html yout, so I put this function into Copilot
+// and it provided some updates on containerWidth and padding to look better
 function updateLineChart(id, metric, metricsDict, metricLabel) {
     const data = getTimeSeriesData(id, metric, metricsDict);
     const avgData = getAverageTrend(metric, metricsDict);
@@ -521,6 +531,8 @@ function updateLineChart(id, metric, metricsDict, metricLabel) {
     .text(metricLabel);
 
     // Title
+    // AI: I wasn't able to generate districtName and asked Copilot to look
+    // for mistakes, and it told me how to index into Objects in Javascript
     const entry = Object.values(metricsDict[id])[0];  // first year’s entry object
     const districtName = entry ? entry.district : "Unknown";
     svg.append("text")
