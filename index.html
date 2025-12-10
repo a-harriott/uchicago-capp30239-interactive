@@ -48,7 +48,12 @@
         </div>
 
         <div class="map-table-grid">
-            <div id="map"></div>
+            
+            <div class="map-column">
+                <div id="map"></div>
+
+                <div id="map-legend" class="map-legend-panel"></div>
+            </div>
 
             <div class="table-panel">
 
@@ -228,7 +233,7 @@
                     paint: {
                         //'fill-color': '#88c',
                         'fill-color': ['get', 'color'],
-                        'fill-opacity': 0.7
+                        'fill-opacity': 1
                     }
                 });
 
@@ -401,8 +406,8 @@
             });
 
             // color palette
-            const min = Math.min(...values);
-            const max = Math.max(...values);
+            //const min = Math.min(...values);
+            //const max = Math.max(...values);
 
             const palette = getPalette(metric);
             //const colorScale = d3.scaleQuantize()
@@ -414,6 +419,9 @@
             //const colorScale = d3.scaleQuantize()
             //.domain([min, max])
             //.range(uniform_palette);
+
+            // Get legend
+            updateLegend(colorScale, metric);
 
             // Assign colors based on dictionary values
             geojson.features.forEach(f => {
@@ -427,13 +435,42 @@
 
             console.log("Metric:", metric, "Year:", year);
             console.log("Values collected:", values);
-            console.log("Min:", min, "Max:", max);    
+            //console.log("Min:", min, "Max:", max);    
 
             // Update source
             map.getSource('schoolDistricts').setData(geojson);
 
             // Update table with selected districts (if any)
             updateTable(selectedDistricts, metric, year, metricsDict);
+        }
+
+        // Legend
+        function updateLegend(colorScale, metric) {
+            const legend = d3.select("#map-legend");
+            legend.selectAll("*").remove(); // clear old legend
+
+            const thresholds = colorScale.quantiles ? colorScale.quantiles() : colorScale.thresholds();
+            const range = colorScale.range();
+
+            // Build swatches
+            range.forEach((color, i) => {
+                const swatch = legend.append("div").attr("class", "map-legend-swatch").style("background", color);
+
+                let label;
+                if (i === 0) {
+                    label = `≤ ${thresholds[0].toFixed(1)}`;
+                } else if (i === range.length - 1) {
+                    label = `≥ ${thresholds[thresholds.length - 1].toFixed(1)}`;
+                } else {
+                    label = `${thresholds[i-1].toFixed(1)} – ${thresholds[i].toFixed(1)}`;
+                }
+
+                legend.append("span").text(label);
+            });
+
+            // Add "No data" swatch
+            legend.append("div").attr("class", "map-legend-swatch").style("background", "#8a8a8a");
+            legend.append("span").text("No data");
         }
 
         // Line chart

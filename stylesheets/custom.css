@@ -66,11 +66,47 @@ header h1 {
   flex: 1;   /* makes the grid fill the remaining height */
 }
 
+.map-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* spacing between map and legend */
+}
+
 #map {
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 10px;
     min-height: 420px;
+}
+
+/*
+.map-legend-panel {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+*/
+
+.map-legend-swatch {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.map-legend-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap; /* allow swatches to wrap if too many */
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .table-panel {
@@ -172,54 +208,3 @@ tbody tr:hover {
   stroke-width: 2;
   fill: none;
 }
-
-
-/* REMOVE */
-
-/* used for little color boxes in a legend */
-.swatch {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-    display: inline-block;
-}
-
-/* only matter if you’re rendering rows with those classes. */
-.row-key {
-    color: var(--text);
-    font-weight: 600;
-}
-
-/* only matter if you’re rendering rows with those classes. */
-.row-value {
-    color: var(--muted);
-}
-
-/* a pill‑shaped badge style, if you render badges */
-.value-badge {
-    padding: 2px 8px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: #10132a;
-    color: var(--text);
-    font-size: 12px;
-}
-
-/* only applies if you’re using custom tooltips */
-.tooltip {
-    background: rgba(23, 26, 43, 0.95);
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 6px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-}
-
-/* only matters if you actually have a footer element */
-.footer {
-    padding: 8px 12px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
