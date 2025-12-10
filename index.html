@@ -488,11 +488,11 @@
 
                 let label;
                 if (i === 0) {
-                    label = `≤ ${thresholds[0].toFixed(1)}`;
+                    label = `≤ ${displayFormat(thresholds[0], metric)}`;
                 } else if (i === range.length - 1) {
-                    label = `≥ ${thresholds[thresholds.length - 1].toFixed(1)}`;
+                    label = `≥ ${displayFormat(thresholds[thresholds.length - 1], metric)}`;
                 } else {
-                    label = `${thresholds[i-1].toFixed(1)} – ${thresholds[i].toFixed(1)}`;
+                    label = `${displayFormat(thresholds[i-1], metric)} – ${displayFormat(thresholds[i], metric)}`;
                 }
 
                 legend.append("span").text(label);
@@ -504,6 +504,19 @@
         }
 
         // Line chart
+        function getAverageTrend(metric, metricsDict) {
+            // Collect all years
+            const years = Object.keys(metricsDict[Object.keys(metricsDict)[0]]);
+            
+            return years.map(year => {
+                const values = Object.values(metricsDict)
+                .map(d => d[year]?.[metric])
+                .filter(v => v !== undefined && v !== "NA");
+                const avg = d3.mean(values);
+                return { year, value: avg };
+            });
+        }
+
         function getTimeSeriesData(id, metric, metricsDict) {
             const entries = metricsDict[id];
             if (!entries) return [];
@@ -515,12 +528,18 @@
 
         function updateLineChart(id, metric, metricsDict, metricLabel) {
             const data = getTimeSeriesData(id, metric, metricsDict);
+            const avgData = getAverageTrend(metric, metricsDict);
 
             // Clear old chart
             d3.select("#linechart").selectAll("*").remove();
 
-            const svgWidth = 600, svgHeight = 300;
-            const margin = { top: 30, right: 20, bottom: 40, left: 75 };
+            const container = document.getElementById("linechart");
+            svgHeight = 300;
+            //const svgWidth = 600;
+            const svgWidth = container.offsetWidth * 0.8 + 200; // add space for legend
+            const containerWidth = container.offsetWidth;
+
+            const margin = { top: 30, right: 150, bottom: 40, left: 75 };
 
             const svg = d3.select("#linechart")
                 .append("svg")
@@ -541,10 +560,20 @@
                 .domain(data.map(d => d.year))
                 .range([0, chartWidth]);
 
+            const yMin = d3.min([
+            d3.min(data, d => d.value),
+            d3.min(avgData, d => d.value)
+            ]);
+
+            const yMax = d3.max([
+            d3.max(data, d => d.value),
+            d3.max(avgData, d => d.value)
+            ]);
+
             const y = d3.scaleLinear()
-                .domain([d3.min(data, d => d.value), d3.max(data, d => d.value)])
-                .nice()
-                .range([chartHeight, 0]);
+            .domain([yMin, yMax])
+            .nice()
+            .range([chartHeight, 0]);
 
             // Axes
             g.append("g")
@@ -594,19 +623,20 @@
             const entry = Object.values(metricsDict[id])[0];  // first year’s entry object
             const districtName = entry ? entry.district : "Unknown";
             svg.append("text")
-                .attr("x", margin.left)
+                .attr("x", containerWidth / 2)
                 .attr("y", margin.top - 5)
+                .attr("text-anchor", "middle") 
                 .attr("fill", "var(--text)")
                 .style("font-size", "14px")
                 .style("font-weight", "600")
-                .text(`Trend for ${metricLabel} (${districtName})`);
+                .text(`Trend for ${metricLabel} (${districtName}) vs School District Average`);
 
-            // Line generator
+            // District line generator
             const line = d3.line()
                 .x(d => x(d.year))
                 .y(d => y(d.value));
 
-            // Draw line
+            // District draw line
             const lineColor = getPalette(metric)[2];
             g.append("path")
                 .datum(data)
@@ -616,7 +646,7 @@
                 .attr("stroke-width", 2)
                 .attr("d", line);
 
-            // Add dots
+            // District add dots
             g.selectAll(".dot")
             .data(data)
             .enter()
@@ -628,6 +658,49 @@
             .attr("fill", lineColor)
             .attr("stroke", "#fff")
             .attr("stroke-width", 1.5);
+
+            // Average line
+            const avgLine = d3.line()
+            .x(d => x(d.year))
+            .y(d => y(d.value));
+
+            g.append("path")
+            .datum(avgData)
+            .attr("class", "avg-line")
+            .attr("fill", "none")
+            .attr("stroke", "#444") 
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "5,5") // dashed
+            .attr("d", avgLine);
+
+            // Legend for lines
+            const legend = svg.append("g")
+            .attr("class", "chartline-legend")
+            .attr("transform", `translate(${chartWidth + margin.left + 20}, ${margin.top})`);
+
+            legend.append("line")
+            .attr("x1", 0).attr("y1", 10)
+            .attr("x2", 30).attr("y2", 10)
+            .attr("stroke", lineColor)
+            .attr("stroke-width", 2);
+
+            legend.append("text")
+            .attr("x", 40).attr("y", 14)
+            .style("font-size", "12px")
+            .text("Selected District");
+
+            legend.append("line")
+            .attr("x1", 0).attr("y1", 30)
+            .attr("x2", 30).attr("y2", 30)
+            .attr("stroke", "#444")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "5,5");
+
+            legend.append("text")
+            .attr("x", 40).attr("y", 34)
+            .style("font-size", "12px")
+            .text("Average (All Districts)");
+
         }
 
 
