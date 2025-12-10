@@ -578,14 +578,18 @@
                 .attr("stroke-width", 2)
                 .attr("d", line);
 
-            // Title
-            svg.append("text")
-                .attr("x", margin.left)
-                .attr("y", margin.top - 5)
-                .attr("fill", "var(--text)")
-                .style("font-size", "14px")
-                .style("font-weight", "600")
-                .text(`Trend for ${metric} (${id})`);
+            // Add dots
+            g.selectAll(".dot")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("class", "dot")
+            .attr("cx", d => x(d.year))
+            .attr("cy", d => y(d.value))
+            .attr("r", 4)
+            .attr("fill", "var(--accent)")
+            .attr("stroke", "#fff")
+            .attr("stroke-width", 1.5);
         }
 
 
