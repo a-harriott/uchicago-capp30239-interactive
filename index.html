@@ -69,7 +69,7 @@
                         <thead>
                             <tr>
                                 <th>School District</th>
-                                <th>Metric</th>
+                                <th>Year</th>
                                 <th>Value</th>
                             </tr>
                         </thead>
@@ -149,6 +149,29 @@
             }
         }
 
+        function displayFormat(value, metric) {
+            // NA stays NA
+            if (value === "NA") return "NA";
+
+            // Monetary metrics: add $ and commas, no decimals
+            if (metric.includes("revenue") || metric.includes("expenditure")) {
+                return "$" + d3.format(",")(Math.round(value));
+            }
+
+            // Percent metrics: whole number + %
+            if (metric.includes("rate")) {
+                return d3.format(".0f")(value) + "%";
+            }
+
+            // Ratio for pupil_teacher
+            if (metric === "pupil_teacher") {
+                return d3.format(".1f")(value);
+            }
+
+            // Default: just show raw value
+            return value;
+        }
+
         // Putting things on the map
         map.on('load', () => {
             // Use D3 to load the geojson and csv
@@ -176,8 +199,8 @@
                     expenditure_support_pupil: keepNull(d.expenditure_support_pupil),
                     nces_id: d.nces_id,
                     SED_CODE_1: d.SED_CODE_1,
-                    grad_rate: keepNull(d.grad_rate),
-                    ard_rate: keepNull(d.ard_rate) 
+                    grad_rate: keepNull(d.grad_rate*100),
+                    ard_rate: keepNull(d.ard_rate*100) 
                 }
             });
 
@@ -267,11 +290,12 @@
                     const countyName = entry ? entry.county: "Unknown";
                     const localeName = entry ? entry.locale_group: "Unknown";
                     const value = showNullAsNa(entry, metric);
+                    const displayValue = displayFormat(value, metric);
 
                     // What will be within the popup
                     popup.setLngLat(e.lngLat)
                         .setHTML("<b>" + districtName + "</b><br>" +
-                            metricLabel + " (" + year + "): " + value + 
+                            metricLabel + " (" + year + "): " + displayValue + 
                             "<br>" +
                             "Locale: " + localeName +
                             "<br>" +
@@ -327,23 +351,28 @@
             const tbody = document.querySelector('#data-table tbody');
             const title = document.getElementById('table-title');
             const metricLabel = metricSel.options[metricSel.selectedIndex].text;
-            title.textContent = `Selected Districts — ${metricLabel} (${year})`;
+            title.textContent = `Selected Districts — ${metricLabel}`;
             tbody.innerHTML = '';
 
             selectedDistricts.forEach(sel => {
                 const entry = metricsDict[sel.id] && metricsDict[sel.id][sel.year];
                 const districtName = entry ? entry.district: "Unknown";
                 const value = showNullAsNa(entry, metric);
+                const displayValue = displayFormat(value, metric)
 
                 const tr = document.createElement('tr');
+
                 const tdKey = document.createElement('td');
                 tdKey.textContent = districtName;
-                const tdMetric = document.createElement('td');
-                tdMetric.textContent = metricLabel;
+
+                const tdYear = document.createElement('td');
+                tdYear.textContent = sel.year;
+
                 const tdValue = document.createElement('td');
-                tdValue.textContent = value;
+                tdValue.textContent = displayValue;
+
                 tr.appendChild(tdKey);
-                tr.appendChild(tdMetric);
+                tr.appendChild(tdYear);
                 tr.appendChild(tdValue);
                 tbody.appendChild(tr);
             });
